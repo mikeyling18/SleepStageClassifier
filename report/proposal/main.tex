@@ -1,0 +1,188 @@
+\documentclass{amia}
+\usepackage{graphicx}
+\usepackage[labelfont=bf]{caption}
+\usepackage[superscript,nomove]{cite}
+\usepackage{color}
+\usepackage{hyperref}
+
+
+\begin{document}
+
+
+\title{CSE6250: Sleep Study Project Proposal}
+
+\author{Jon Cusick, Liyue Hu, Mikey Ling, Yi Lu}
+
+\institutes{
+    Georgia Institute of Technology, Atlanta, Georgia\\
+}
+
+\maketitle
+
+\noindent{\bf Abstract}
+
+\textit{Tsinalis, et al used one-dimensional data to train convolutional neural networks (CNNs) to analyze and classify electroencephalography (EEG) readings\cite{ref_Tsinalis2016}. In hopes of shedding light on alternaive methods of implementing the training process employed by Tsinalis, et al, we explored alternative CNN architectures using the same one-dimensional data to classify sleep stages using single-channel EEG signals, then we compared and analyzed our results to those achieved by Tsinalis, et al. Our goal with this study is to promote further investigation on this application of machine learning in the sleep-related healthcare space by producing similar results with a different approach to training the CNN.}
+
+Our project presentation slides are available here.\\
+Our video presentation is available here.\\
+The code is available on Github here. 
+
+\section*{Introduction}
+Sleep is an essential part of healthy living and research shows poor sleep patterns can be directly related to a plethora of known health issues\cite{ref_Wulff2010}. Medical technologies including EEG and electrocardiography (ECG) are effective measurements for capturing and recording activity within the brain and heart. These data are often used by human experts to manually analyze patients' sleep stages. Unfortunately, sleep stage analysis by human experts requires special training and expertise and thus is very expensive, inefficient, and inaccessible for the everyday person. Recent studies suggest the detection of abnormal sleep and circadian cycles could be an invaluable method of early detection for neurodegenerative diseases such as Alzheimer's and Parkinson's\cite{ref_Wulff2010}. Luckily, wearable EEGs already exist in the market space, so developing a reliable software suite for analysis is the next necessary step towards successfully bringing reliable and affordable sleep cycle analysis to the masses.
+
+\section*{Related Work}
+Automatic EEG sleep stage classification has been a much studied task in recent years. The three common steps for classifying sleep stages are preprocessing, feature extraction, and classification. The most relevant work we are considering for this study is Tsinalis, et al, in which raw 1D signals were used without preprocessing as input\cite{ref_Tsinalis2016}. This method acheived an overall accuracy of 74\%, mean accuracy across individual stages of 82\%, and mean $F_{1}$-score of 81\%, using 20-fold cross-validation and class-balanced random sampling. Other related works on single-channel EEG classification have been done with a variety of methods including combining statistical features and similarities of complex networks (92\% accuracy)\cite{ref_DiykhLi2016}, relative wavelet energy with artifical neural networks to analyze epileptic EEG signals (95\% accuracy)\cite{ref_Guo2009}, a genetic algorithm and a fuzzy classifier to classify spectral features (84.6\% accuracy)\cite{ref_Jo2010}, visibility graph algorithms and an SVM (87.5\% accuracy)\cite{ref_Liu2010}, an ensemble SVM-based system (86\% accuracy)\cite{ref_Koley2012}, and a CNN with time-frequency based images (83-86\% accuracy)\cite{ref_Vilamala2017}.
+
+\section*{Method}
+In this study, our best model was achieved with a CNN over one-dimensional EEG readings. We will describe the dataset, CNN architectures and performance metrics and evaluation. We used the same classification standards described by Tsinalis, et al to prove the viablilty of our approaches. As such, we followed the sleep cycle classification guidelines provided in the American Academy of Sleep Medicine (AASM) manual\cite{ref_Iber2007}. Sleep has four stages: Rapid Eye Movement (stage R) and three non-R stages (N1, N2, and N3). An additional Wake stage (stage W) will be added for clarity.
+
+We compared results from our analysis with Tsinalis, et al's study. The success of our model will be measured using the same criteria of Tsinalis, et al: the Rechtschaffen and Kales sleep staging criteria\cite{ref_Rechtschaffen1968}. We will use these criteria to calculate precision, sensitivity, $F_{1}$-score, per-stage accuracy, and overall accuracy. These metrics will be computed as part of a 20-fold cross validation. For each fold, a single patient will be used for testing, while the remaining 19 patients will have 15 patients randomly selected for training, with the remaining 4 being used for validation.
+
+\subsection*{CNN Architecture}
+For our best model, we used raw one dimensional EEG signal without preprocessing as input. Our CNN architecture, as shown in Figure~\ref{fig:figure3}, uses two sets of convolutional and pooling layers (C1, P1, C2, P2), one fully-connected layer (F1) and an output layer (F2). Compared to the Tsinalis et el implementation, we chose a model that was much simpler and therefore much faster to train, and we tried to achieve the best results from it. For a summary of the final hyperparameters for the CNN architecture, please see Table~\ref{tab:a}. 
+
+As shown in Table 3, layer C1 contains ...... filters, so that the output of layer C1 is ...... filtered versions of the original input signal. These filtered signals are then subsampled in layer P1. The next layer C2 has 16 units, then ....... Then it is fed into a fully-connected F1 layer, then into the fully-connected output layer which makes a prediction for one of the five sleep stages. 
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale = 0.5]{model_arch1.png}
+\end{center}
+\caption{Model Architecture}
+\label{fig:figure3}
+\end{figure}
+
+
+\begin{table}[h]
+\centering
+\caption{CNN over 1D EEG Architecture}\label{tab:a}
+\begin{tabular}{| l | l | l | l | l | l | l |}
+\hline
+Layer & Layer Type & Units & Unit Type & Size & Stride & Output Size \\ \hline
+Input & & & & & & (1, 15000) \\ \hline
+C1 & convolutional & 10 & ReLU & 25 & 10 & (10, 1498)  \\ \hline
+P1 & max-pooling & & & 20 & 2 & (10, 740) \\ \hline
+C2 & convolutional & 16 & ReLU & 25 & 10 & (16, 72) \\ \hline
+P2 & max-pooling &  &  & 20 & 2 & (16, 27) \\ \hline
+F1 & fully-connected & 432 & ReLU & 256 &  & (256) \\ \hline
+Output & fully-connected & 256 & linear & 5 &  & (5) \\ \hline
+
+\end{tabular}
+\end{table}
+
+\subsection*{Other Attempts}
+
+Our original thought behind this paper was to feed the CNN with 2D image (2D array) made from the raw 1D signals. We calculated the min (-208) and max (209) EEG value across all *PSG.edf files. As part of the pre-processing step, we increased each EEG value by 208 and converted the result to the nearest integer as the new value. For example, an EEG value of -1.1 would be preprocessed to 207. Therefore, each input to a CNN now consists of 15,000 non-negative integers. Next, we initiate a 417 by 15,000 2D array of zeros. 417 is the absolute difference between the min (-208) and the max (209) EEG values. For each of the 15,000 non-negative integers, we fill in the $i$-th row and $j$-th column of the 417 by 15,000 2D array with the value of 1, where $i$ is the value of the non-negative integer and $j$ is the index of the non-negative integer in the 15,000 non-negative integer array. The resulting 417 by 15,000 2D array (2D image) would then be the final input used to train a CNN with the corresponding sleeping stage label. After removing \textit{Sleep Stage Movement} and \textit{Sleep stage ?} labels, we have a total of 106,414 input-label training data.
+
+We attempted to represent input data as a two-dimensional array 417 by 15,000. We represented each set of input data as a three-dimensional matrix. If a set of input data has 30,000 417 by 15,000 input data, then the three-dimensional matrix is 30,000 by 417 by 15,000. We attempted to create a sparse matrix to minimize the computation using Pytorch’s sparse API. However, we ran into apparent out-of-memory issues and the program exits with SIGKILL signal. We understand that we might be able to solve the memory issue with several approachs (such as training the model in batches of smaller set of input data or utlize robust cloud computing resources like Azure/AWS), however, we realized the inherent inefficiency in doing so compared to using just 1D data. We decided to switch our focus to working with 1D data instead. 
+
+
+\section*{Data}
+The EEG data used in this study was obtained from \href{http://physionet.org}{physionet.org}\cite{ref_PhysioNet}. The entire dataset consists of 20 healthy subjects, 10 male and 10 female, aged 25-34 years. There are two approximately 20-hour recordings per subject, apart from a single subject for whom there is only a single recording. Therefore, we retrieved 39 (2 $\cdot $ 20 - 1) *PSG.edf files that record EEG value at 100 Hz and their corresponding 39 *Hypnogram.edf files that provide sleeping stages (labels) of \textit{Sleep stage 1}, \textit{Sleep stage 2}, \textit{Sleep stage 3}, \textit{Sleep stage 4}, \textit{Sleep stage R}, \textit{Sleep stage W}, or \textit{Sleep stage ?}. Labels are manually assigned by experts. Following guidelines given by the American Academy of Sleep Medicine, we combined \textit{Sleep stage 4} into \textit{Sleep stage 3}. We also removed the small amount of data for \textit{Sleep stage Movement} and \textit{Sleep stage ?}. 
+
+We analyzed the distribution of different sleep stages in each patient, as shown below in Figure~\ref{fig:figure2}.
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale = 0.18]{sleep_labels_by_patient.png}
+\end{center}
+\caption{Sleep Stages by Patient}
+\label{fig:figure2}
+\end{figure}
+
+We noticed that the data is heavily unbalanced, with the majority of epoches in the “W” stage. A heavily skewed data have the possibility of impacting model performance by favoring the most freqently occured stage. To improve the prediction capability of the CNN, we decided to implmenet class-balanced random selection in our model. After playing around with the weights of the different stages, we were able to achieve best results by decreasing the weight of the  “W” stage to that of the second frequently occuring stage, as shown in Figure~\ref{fig:figure5}. We first tried a truly balanced weighting and achieved worse results than we did from the final weighting. 
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale = 0.18]{sleep_labels_by_patient_training.png}
+\end{center}
+\caption{Sleep Stages by Patient - Class-Balanced}
+\label{fig:figure5}
+\end{figure}
+
+The original paper trains a CNN that classifies a 30-second EEG recording (epoch) into sleeping stages of \textit{Sleep stage 1}, \textit{Sleep stage 2}, \textit{Sleep stage 3}, or \textit{Sleep stage R}. In the paper, an epoch is represented by a 1D array of 3,000 (100hz $\cdot$ 30) EEG values. To account for the relationships and sequence patterns among various sleeping stages, each training input consists of 5 epochs: 2 proceeding epochs, the current epoch, and 2 succeeding epochs. Therefore, in the paper, the input to a CNN consists of 5 epochs (1D array of 15,000 EEG values). In our first model, we used the same input as described in the original paper.
+
+Patient records were chosen at random for the test, train and validate data; specifically, we used 15 patient records for the training set, 1 patient records for the testing set and 4 patient records for the validation set. 
+
+\section*{Result}
+
+
+We computed the confusion matrix for per-stage accuracy, as shown below in Figure~\ref{fig:figure1}.
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale = 0.75]{confusion_matrix_normalized.png}
+\end{center}
+\caption{Per-stage Confusion Matrix}
+\label{fig:figure1}
+\end{figure}
+
+We achieved best performance in classifying the Wake stage (93\%), and had the worst accuracy for classifying Non-Rem 1 Stage (4\%). Overral, the mean accuracy across all five stages is 85\%. This is higher than the (74\%) overrall accuracy achieved by Tsinalis' study. However, our model performance are less even across the different sleep stages. 
+
+To evaluate our models, we computed per stage performance metrics, as shown in Table~\ref{tab:c}. 
+
+\begin{table}[h]
+\centering
+\caption{Model Evaluation}\label{tab:c}
+\begin{tabular}{| l | l | l | l | l | l |}
+\hline
+Stage & Precision & Sensitivity & $F_{1}$-score \\ \hline
+Non-REM 1 & 17 & 4 & 7 \\ \hline
+Non-REM 2 & 82 & 85 & 77 \\ \hline
+Non-REM 3 & 55 & 85 & 62 \\ \hline
+REM & 44 & 67 & 53 \\ \hline
+Wake & 98 & 93 & 95 \\ \hline
+
+\end{tabular}
+\end{table}
+
+\section*{Analysis}
+
+Non-REM 1 stage had the worst performance, likely due to the fact that it is the least frequently occured sleep stage. Wake stage had the best performance, since it is still the most frequently occuring sleep stage. When we first implemented the CNN architetcure without the class-balancing, we achieved (54\%) accuracy. We were surprised by the effect of class-balance random sampling. Additionally, even though we achieved higher overrall accuracy than Tsinalis' architecture, our model is by no means superior. In the real life, it is important to understand the underlying issue that we trying to solve. We get the sense that Tsinalis et al believed that it is more important to achieve higher mean accuracy measures over the different sleep stages as well as improving the worst stage performance, as seen in their focus on calclulating the mean and worst performance metrics. If that is indeed the case, then our model would not be a good predictor for sleep classification. However, our goal was to find a simple model with high overrall accuracy, and we were able to achieve our goal. The other benefit of our model is that it is a lot simpler and therefore require less computing power than Tsinalis' model. We believe that our results provide a good starting point for future projects on this topic.
+
+\section*{Conclusion}
+The ultimate goal of this project is to further explore the possibility of making accurate and reliable sleep stage analysis more accessible for everyone. Today, wearable technology has already begun to make state of the art healthcare more accessible. For example, the iWatch can take EKG measurements and send them to a patient's cardiologist for further inspection. Creating a software package that can provide in-house, expert-grade sleep stage analysis would be a monumental step towards our ultimate goal of providing invaluable healthcare services to those who wouldn't be able to get it otherwise. Technology is in the midst of completely changing the way the world looks at healthcare and we would love for our work to contribute to this cause. 
+
+\newpage
+
+\makeatletter
+\renewcommand{\@biblabel}[1]{\hfill #1.}
+\makeatother
+
+
+
+\bibliographystyle{unsrt}
+\begin{thebibliography}{1}
+\setlength\itemsep{-0.1em}
+
+\bibitem{ref_DiykhLi2016}
+Diykh, Mohammed and Yan Li. 2016. Complex networks approach for EEG signal sleep stages classification. Expert Syst. Appl. 63, C (November 2016), 241-248. DOI: https://doi.org/10.1016/j.eswa.2016.07.004 
+\bibitem{ref_Iber2007}
+Iber, C., S. Ancoli-Israel, A. Chesson, and S. F. Quan. The AASM Manual for the Scoring of Sleep and Associated Events: Rules, Terminology and Technical Specifications. Westchester, IL: American Academy of Sleep Medicine, 2007.
+\bibitem{ref_Guo2009}
+Guo, L., Rivero, D., Seoane, J.A., and Pazos, A. (2009). Classification of EEG signals using relative wavelet energy and artifical neural networks. Proceeding of the first ACM/SIGEVO summit on genetic and evolutionary computatino (pp. 177-184). ACM.
+\bibitem{ref_Jo2010}
+Jo, H. G., Park, J. Y., Lee, C. K., An, S. K., and Yoo, S. K. (2010). Genetic fuzzy classifier for sleep stage identification. Computers in Biology and Medicine, 40, 629-634.
+\bibitem{ref_Koley2012}
+Koley, B., and Dey, D. (2012). An ensemble system for automatic sleep stage classification using single channel EEG signal. Computers in biology and medicine, 42 12, 1186-95.
+\bibitem{ref_Liu2010}
+Liu, C., Zhou, W. X., and Yuan, W. K. (2010). Statistical properties of visibility graph of energy dissipation rates in three-dimensional full developed turbulence. Physica A: Statistical Mechanics and its Applications, 389, 2675-2681.
+\bibitem{ref_PhysioNet}
+PhysioNet: The Sleep-EDF database [Expanded]: http://www.physionet.org/physiobank/ database/sleep-edfx/ (Accessed October 2018).
+\bibitem{ref_Rechtschaffen1968}
+Rechtschaffen, A., and A. Kales. (eds.). A manual of standardized terminology, techniques and scoring system for sleep stages of human subjects. Washington, DC: Public Health Service, U.S. Government Printing Office, 1968.
+\bibitem{ref_Tsinalis2016}
+O. Tsinalis, P. M. Matthews, Y. Guo, and S. Zafeiriou. Automatic sleep stage scoring with single-channel eeg using convolutional neural networks. arXiv preprint arXiv:1610.01683, 2016.
+\bibitem{ref_Vilamala2017}
+Vilamala, A., Madsen, K. H., and Hansen, L. K. (2017). Deep convolutional neural networks for interpretable analysis of EEG sleep stage scoring. 2017 IEEE 27th International Workshop on Machine Learning for Signal Processing (MLSP), 1-6.
+\bibitem{ref_Wulff2010}
+Wulff, K., S. Gatti, J. G. Wettstein, and R. G. Foster. Sleep and circadiam rhythm disruption in psychiatric and neurodegenerative disease. Nat. Rev. Neurosci. 11(8): 589-599, 2010.
+\bibitem{ref_Zhang2015}
+Zhang, H., McLoughlin, I. and Song, Y., 2015, April. Robust sound event recognition using convolutional neural networks. In Acoustics, Speech and Signal Processing (ICASSP), 2015 IEEE International Conference on (pp. 559-563). IEEE.
+
+
+
+
+\end{thebibliography}
+
+\end{document}
+

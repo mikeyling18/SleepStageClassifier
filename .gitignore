@@ -1,0 +1,34 @@
+# Report/LaTeX files
+*.aux
+*.gz
+*.log
+*.pdf
+report/proposal/pics/
+report/draft/pics/
+report/final/pics/
+
+# Datasets
+data/
+
+# Logon to AWS machine
+keypair/
+
+# Mac specific files
+.DS_Store
+
+# Jupyter lab
+src/notebook/.ipynb_checkpoints/
+*.png
+*.txt
+
+# xml files
+*.xml
+
+# iml files
+*.iml
+
+# pyc
+*.pyc
+
+# csv
+*.csv
